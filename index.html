@@ -56,7 +56,9 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             text-decoration: none;
             color: inherit;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         
         .sim-card.active {
@@ -102,6 +104,9 @@
         
         .sim-card-body {
             padding: 25px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
         }
         
         .sim-card-body h2 {
@@ -114,6 +119,7 @@
             color: #666;
             line-height: 1.6;
             margin-bottom: 15px;
+            flex-grow: 1;
         }
         
         .sim-card-body .tags {

@@ -1,0 +1,252 @@
+<!-- projectile_height.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projectile Motion (Launch Height)</title>
+  <style>
+    :root { --card:#ffffff; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --accent:#3b82f6; --accent2:#ef4444; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Arial,sans-serif;background:linear-gradient(135deg,#f8fafc,#e2e8f0);min-height:100vh;display:grid;place-items:center}
+    .wrap{width:min(1000px,95vw);background:var(--card);border-radius:14px;box-shadow:0 8px 30px rgba(2,8,23,.08);padding:22px}
+    h1{margin:0 0 4px;color:var(--ink);font-size:1.5rem}
+    p.sub{margin:0 0 16px;color:var(--muted)}
+    .grid{display:grid;gap:18px;grid-template-columns:1fr 320px}
+    canvas{width:100%;border:2px solid var(--line);border-radius:10px;background:#fff}
+    .panel{display:flex;flex-direction:column;gap:12px}
+    label{font-weight:700;color:var(--ink);display:flex;justify-content:space-between}
+    input[type=range]{width:100%}
+    .row{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+    .btns{display:flex;gap:8px}
+    button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+    button.secondary{background:#94a3b8}
+    .out{color:var(--muted);font-size:.95rem}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Projectile Motion (Variable Launch Height)</h1>
+    <p class="sub">Adjust angle, speed, gravity, and launch height. Press <b>Launch</b> to animate.</p>
+
+    <div class="grid">
+      <canvas id="plot" width="720" height="480"></canvas>
+
+      <div class="panel">
+        <div class="row">
+          <label>Angle (°) <span id="angleVal">45</span></label>
+          <input id="angle" type="range" min="0" max="90" value="45">
+        </div>
+        <div class="row">
+          <label>Speed (m/s) <span id="speedVal">30</span></label>
+          <input id="speed" type="range" min="1" max="120" value="30">
+        </div>
+        <div class="row">
+          <label>Gravity (m/s²) <span id="gravVal">9.81</span></label>
+          <input id="grav" type="range" step="0.01" min="0.10" max="20" value="9.81">
+        </div>
+        <div class="row">
+          <label>Launch height (m) <span id="h0Val">0</span></label>
+          <input id="h0" type="range" step="0.1" min="0" max="100" value="0">
+        </div>
+
+        <div class="btns">
+          <button id="launch">Launch</button>
+          <button id="pause"  class="secondary">Pause</button>
+          <button id="resume" class="secondary">Resume</button>
+          <button id="reset"  class="secondary">Reset</button>
+        </div>
+
+        <div class="out" id="readout"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // ===== DOM =====
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+
+    const angle   = document.getElementById('angle');
+    const speed   = document.getElementById('speed');
+    const grav    = document.getElementById('grav');
+    const h0      = document.getElementById('h0');
+
+    const angleVal= document.getElementById('angleVal');
+    const speedVal= document.getElementById('speedVal');
+    const gravVal = document.getElementById('gravVal');
+    const h0Val   = document.getElementById('h0Val');
+    const readout = document.getElementById('readout');
+
+    const btnLaunch= document.getElementById('launch');
+    const btnPause = document.getElementById('pause');
+    const btnResume= document.getElementById('resume');
+    const btnReset = document.getElementById('reset');
+
+    // ===== Helpers =====
+    const rad = d => d * Math.PI / 180;
+    const MARGIN = 36;
+
+    function physicsStats() {
+      const th  = rad(+angle.value);
+      const v0  = +speed.value;
+      const g   = +grav.value;
+      const y0  = +h0.value;
+
+      // time of flight: solve y(t)=0 for positive root
+      // y(t) = y0 + v0*sin(th)*t - 1/2 g t^2
+      // => (g/2) t^2 - v0 sin(th) t - y0 = 0
+      const a = 0.5*g, b = -v0*Math.sin(th), c = -y0;
+      const disc = b*b - 4*a*c;         // always >=0 for g>0, y0>=0
+      const tFlight = ( -b + Math.sqrt(Math.max(0,disc)) ) / (2*a);
+
+      const xmax = v0*Math.cos(th) * tFlight;
+      const hmax = y0 + (v0*v0*Math.sin(th)**2)/(2*g);
+
+      return { th, v0, g, y0, tFlight, xmax, hmax };
+    }
+
+    function worldToScreenFactory({xmax,hmax,y0}) {
+      const ymax = Math.max(hmax, y0, 1);
+      const sx = (canvas.width  - 2*MARGIN) / Math.max(1, xmax*1.05);
+      const sy = (canvas.height - 2*MARGIN) / Math.max(1, ymax*1.25);
+      return (x,y) => [
+        MARGIN + x*sx,
+        canvas.height - MARGIN - y*sy
+      ];
+    }
+
+    function clearScene(stats) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // ground (y=0)
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(MARGIN, canvas.height - MARGIN);
+      ctx.lineTo(canvas.width - MARGIN, canvas.height - MARGIN);
+      ctx.stroke();
+
+      // launch point pole
+      const toScreen = worldToScreenFactory(stats);
+      const [X0, Y0] = toScreen(0, stats.y0);
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.beginPath();
+      ctx.moveTo(X0, canvas.height - MARGIN);
+      ctx.lineTo(X0, Y0);
+      ctx.stroke();
+    }
+
+    function drawTrajectory() {
+      const s = physicsStats();
+      clearScene(s);
+      const toScreen = worldToScreenFactory(s);
+
+      readout.innerHTML =
+        `Time: <b>${s.tFlight.toFixed(2)} s</b> &nbsp; ` +
+        `Range: <b>${s.xmax.toFixed(2)} m</b> &nbsp; ` +
+        `Max height: <b>${s.hmax.toFixed(2)} m</b> &nbsp; ` +
+        `v<sub>x0</sub>=${(s.v0*Math.cos(s.th)).toFixed(2)} m/s, ` +
+        `v<sub>y0</sub>=${(s.v0*Math.sin(s.th)).toFixed(2)} m/s, ` +
+        `y<sub>0</sub>=${s.y0.toFixed(2)} m`;
+
+      // path
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const steps = 260;
+      for (let i=0;i<=steps;i++){
+        const t = s.tFlight * (i/steps);
+        const x = s.v0*Math.cos(s.th)*t;
+        const y = s.y0 + s.v0*Math.sin(s.th)*t - 0.5*s.g*t*t;
+        const [X,Y] = toScreen(x, Math.max(0,y));
+        if (i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+      }
+      ctx.stroke();
+
+      // draw start dot
+      const [X0,Y0] = toScreen(0, s.y0);
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath(); ctx.arc(X0, Y0, 6, 0, Math.PI*2); ctx.fill();
+    }
+
+    // reflect slider labels + live curve
+    function reflect() {
+      angleVal.textContent = angle.value;
+      speedVal.textContent = speed.value;
+      gravVal.textContent  = grav.value;
+      h0Val.textContent    = h0.value;
+      drawTrajectory();
+    }
+    angle.addEventListener('input', reflect);
+    speed.addEventListener('input', reflect);
+    grav .addEventListener('input', reflect);
+    h0   .addEventListener('input', reflect);
+
+    // ===== Animation with pause/resume =====
+    let animId = null, running = false, t0 = 0, elapsedAccum = 0;
+
+    function drawFrame(t) {
+      const s = physicsStats();
+      const toScreen = worldToScreenFactory(s);
+
+      const elapsed = (performance.now() - t0)/1000 + elapsedAccum;
+      const playT = Math.min(elapsed, s.tFlight);
+
+      drawTrajectory();
+      const x = s.v0*Math.cos(s.th)*playT;
+      const y = s.y0 + s.v0*Math.sin(s.th)*playT - 0.5*s.g*playT*playT;
+
+      const [X,Y] = toScreen(x, Math.max(0,y));
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(X, Y, 6, 0, Math.PI*2); ctx.fill();
+
+      if (playT < s.tFlight && running) animId = requestAnimationFrame(drawFrame);
+      else running = false;
+    }
+
+    function launch() {
+      elapsedAccum = 0;             // fresh launch
+      t0 = performance.now();
+      running = true;
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(drawFrame);
+    }
+    function pause() {
+      if (!running) return;
+      const s = physicsStats();
+      const now = performance.now();
+      elapsedAccum += (now - t0)/1000;
+      running = false;
+      cancelAnimationFrame(animId);
+      // clamp to flight time
+      elapsedAccum = Math.min(elapsedAccum, s.tFlight);
+    }
+    function resume() {
+      const s = physicsStats();
+      if (elapsedAccum >= s.tFlight) return; // already finished
+      if (running) return;
+      t0 = performance.now();
+      running = true;
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(drawFrame);
+    }
+    function reset() {
+      running = false;
+      elapsedAccum = 0;
+      cancelAnimationFrame(animId);
+      drawTrajectory();
+    }
+
+    btnLaunch.addEventListener('click', launch);
+    btnPause .addEventListener('click', pause);
+    btnResume.addEventListener('click', resume);
+    btnReset .addEventListener('click', reset);
+
+    // initial
+    reflect();
+  </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Physics Simulations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .simulations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        .sim-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .sim-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .sim-card-header {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sim-card-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 10%);
+            background-size: 30px 30px;
+            animation: moveBackground 20s linear infinite;
+        }
+        
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+        
+        .sim-card-body {
+            padding: 25px;
+        }
+        
+        .sim-card-body h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .sim-card-body p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .sim-card-body .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag {
+            background: #e0e7ff;
+            color: #4f46e5;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-live {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-coming {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-top: 60px;
+            opacity: 0.8;
+        }
+        
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚛️ Interactive Physics Simulations</h1>
+            <p>Explore physics concepts through interactive visualizations</p>
+            <a href="#simulations" class="cta-button">Explore Simulations →</a>
+        </header>
+        
+        <div id="simulations" class="simulations-grid">
+            <!-- Atomic Diffusion Simulation -->
+            <a href="atom-diffusion.html" class="sim-card">
+                <div class="sim-card-header">
+                    ⚛️
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-live">✓ LIVE</span>
+                    <h2>Atomic Vacancy Diffusion</h2>
+                    <p>Watch atoms vibrate and jump between vacancy sites as temperature increases. Understand thermal energy and atomic motion.</p>
+                    <div class="tags">
+                        <span class="tag">Thermodynamics</span>
+                        <span class="tag">Materials</span>
+                        <span class="tag">Kinetics</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Placeholder for future simulations -->
+            <div class="sim-card" style="opacity: 0.7; cursor: not-allowed;">
+                <div class="sim-card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    〰️
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-coming">Coming Soon</span>
+                    <h2>Wave Interference</h2>
+                    <p>Visualize constructive and destructive interference patterns. Perfect for understanding wave behavior and superposition.</p>
+                    <div class="tags">
+                        <span class="tag">Waves</span>
+                        <span class="tag">Optics</span>
+                        <span class="tag">Sound</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sim-card" style="opacity: 0.7; cursor: not-allowed;">
+                <div class="sim-card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    🎯
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-coming">Coming Soon</span>
+                    <h2>Projectile Motion</h2>
+                    <p>Launch projectiles and see parabolic trajectories. Adjust angle, velocity, and gravity to explore kinematic equations.</p>
+                    <div class="tags">
+                        <span class="tag">Kinematics</span>
+                        <span class="tag">Mechanics</span>
+                        <span class="tag">Vectors</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sim-card" style="opacity: 0.7; cursor: not-allowed;">
+                <div class="sim-card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    🔋
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-coming">Coming Soon</span>
+                    <h2>Electric Field Visualization</h2>
+                    <p>Place charges and observe electric field lines and equipotential surfaces in real-time.</p>
+                    <div class="tags">
+                        <span class="tag">Electromagnetism</span>
+                        <span class="tag">Fields</span>
+                        <span class="tag">Forces</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sim-card" style="opacity: 0.7; cursor: not-allowed;">
+                <div class="sim-card-header" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    ⚖️
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-coming">Coming Soon</span>
+                    <h2>Simple Harmonic Motion</h2>
+                    <p>Explore springs, pendulums, and oscillations. Visualize energy transfer between kinetic and potential.</p>
+                    <div class="tags">
+                        <span class="tag">Oscillations</span>
+                        <span class="tag">Energy</span>
+                        <span class="tag">Mechanics</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sim-card" style="opacity: 0.7; cursor: not-allowed;">
+                <div class="sim-card-header" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                    🌡️
+                </div>
+                <div class="sim-card-body">
+                    <span class="status-badge status-coming">Coming Soon</span>
+                    <h2>Gas Laws Simulator</h2>
+                    <p>Manipulate pressure, volume, and temperature. See how gas molecules behave under different conditions.</p>
+                    <div class="tags">
+                        <span class="tag">Thermodynamics</span>
+                        <span class="tag">Gases</span>
+                        <span class="tag">PV=nRT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with ❤️ for physics education</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                Have suggestions? Want to contribute? 
+                <a href="mailto:your.email@example.com">Contact me</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

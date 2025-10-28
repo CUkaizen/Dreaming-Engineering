@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electric Field Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom right, #1e1b4b, #312e81);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            color: #1e293b;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 1em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 25px;
+        }
+        
+        .canvas-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        canvas {
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            background: #0f172a;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+            cursor: crosshair;
+            width: 100%;
+            height: auto;
+        }
+        
+        .info-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-item {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-label {
+            font-size: 0.8em;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        .controls-panel {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .control-group {
+            margin-bottom: 18px;
+        }
+        
+        .control-group h3 {
+            color: #334155;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        
+        .charge-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .charge-btn {
+            padding: 12px;
+            font-size: 1em;
+            font-weight: bold;
+            border: 3px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .charge-btn.positive {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        
+        .charge-btn.positive:hover, .charge-btn.positive.active {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .charge-btn.negative {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .charge-btn.negative:hover, .charge-btn.negative.active {
+            background: #3b82f6;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .slider-control {
+            margin-bottom: 12px;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .slider-label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.8em;
+        }
+        
+        .slider-value {
+            font-weight: bold;
+            color: #1e293b;
+            font-size: 0.8em;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: #cbd5e1;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        button {
+            padding: 10px;
+            font-size: 0.85em;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-clear {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        .btn-preset {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .btn-preset:hover {
+            background: #7c3aed;
+            transform: translateY(-2px);
+        }
+        
+        .charges-list {
+            max-height: 140px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+        }
+        
+        .charge-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px;
+            margin-bottom: 4px;
+            background: #f8fafc;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        
+        .charge-item .charge-sign {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .charge-item.positive .charge-sign {
+            color: #ef4444;
+        }
+        
+        .charge-item.negative .charge-sign {
+            color: #3b82f6;
+        }
+        
+        .btn-remove {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 3px 6px;
+            font-size: 0.75em;
+        }
+        
+        .btn-remove:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Electric Field Visualization</h1>
+            <p class="subtitle">Place charges and observe electric field vectors</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="canvas-section">
+                <canvas id="canvas" width="850" height="600"></canvas>
+                
+                <div class="info-bar">
+                    <div class="info-item">
+                        <div class="info-label">Total Charges</div>
+                        <div class="info-value" id="charge-count">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Net Charge</div>
+                        <div class="info-value" id="net-charge">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>Add Charges</h3>
+                    <div class="charge-buttons">
+                        <button class="charge-btn positive" id="addPositive">+</button>
+                        <button class="charge-btn negative" id="addNegative">−</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Settings</h3>
+                    
+                    <div class="slider-control">
+                        <div class="slider-header">
+                            <span class="slider-label">Grid Spacing</span>
+                            <span class="slider-value"><span id="spacing-value">30</span></span>
+                        </div>
+                        <input type="range" id="spacing" min="20" max="50" value="30" step="5">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <div class="slider-header">
+                            <span class="slider-label">Arrow Size</span>
+                            <span class="slider-value"><span id="scale-value">20</span></span>
+                        </div>
+                        <input type="range" id="scale" min="10" max="40" value="20" step="5">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <div class="slider-header">
+                            <span class="slider-label">Charge Strength</span>
+                            <span class="slider-value"><span id="magnitude-value">5</span></span>
+                        </div>
+                        <input type="range" id="magnitude" min="1" max="10" value="5" step="1">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Placed Charges</h3>
+                    <div class="charges-list" id="chargesList">
+                        <p style="color: #94a3b8; text-align: center; font-size: 0.8em;">No charges</p>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Presets</h3>
+                    <div class="action-buttons">
+                        <button class="btn-preset" id="dipoleBtn">Dipole</button>
+                        <button class="btn-preset" id="quadrupoleBtn">Quadrupole</button>
+                        <button class="btn-preset" id="lineBtn">Line</button>
+                        <button class="btn-clear" id="clearBtn">Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let charges = [];
+        let selectedChargeType = null;
+        let gridSpacing = 30;
+        let vectorScale = 20;
+        let chargeMagnitude = 5;
+        
+        class Charge {
+            constructor(x, y, q) {
+                this.x = x;
+                this.y = y;
+                this.q = q;
+                this.radius = 15;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                
+                if (this.q > 0) {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.strokeStyle = '#991b1b';
+                } else {
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.strokeStyle = '#1e40af';
+                }
+                
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.q > 0 ? '+' : '−', this.x, this.y);
+            }
+            
+            getFieldAt(x, y) {
+                const dx = x - this.x;
+                const dy = y - this.y;
+                const r = Math.sqrt(dx * dx + dy * dy);
+                
+                if (r < this.radius + 5) return { ex: 0, ey: 0 };
+                
+                const magnitude = (this.q * chargeMagnitude * 1000) / (r * r);
+                return {
+                    ex: magnitude * dx / r,
+                    ey: magnitude * dy / r
+                };
+            }
+        }
+        
+        function getTotalField(x, y) {
+            let ex = 0, ey = 0;
+            
+            for (const charge of charges) {
+                const field = charge.getFieldAt(x, y);
+                ex += field.ex;
+                ey += field.ey;
+            }
+            
+            return { ex, ey };
+        }
+        
+        function drawArrow(x, y, ex, ey, magnitude) {
+            const maxLength = vectorScale;
+            const scale = Math.min(magnitude / 10, 1) * maxLength;
+            const vx = (ex / magnitude) * scale;
+            const vy = (ey / magnitude) * scale;
+            
+            // Color based on magnitude
+            const intensity = Math.min(magnitude / 20, 1);
+            const r = Math.floor(34 + (239 - 34) * intensity);
+            const g = Math.floor(197 + (68 - 197) * intensity);
+            const b = Math.floor(94 + (68 - 94) * intensity);
+            const color = `rgb(${r}, ${g}, ${b})`;
+            
+            // Draw arrow line
+            ctx.beginPath();
+            ctx.moveTo(x - vx/2, y - vy/2);
+            ctx.lineTo(x + vx/2, y + vy/2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            
+            // Draw arrow head
+            const angle = Math.atan2(ey, ex);
+            const headLength = 8;
+            const headWidth = 6;
+            
+            ctx.save();
+            ctx.translate(x + vx/2, y + vy/2);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-headLength, -headWidth);
+            ctx.lineTo(-headLength, headWidth);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        function drawVectorField() {
+            for (let x = 0; x <= canvas.width; x += gridSpacing) {
+                for (let y = 0; y <= canvas.height; y += gridSpacing) {
+                    const field = getTotalField(x, y);
+                    const magnitude = Math.sqrt(field.ex * field.ex + field.ey * field.ey);
+                    
+                    if (magnitude > 0.1) {
+                        drawArrow(x, y, field.ex, field.ey, magnitude);
+                    }
+                }
+            }
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (charges.length > 0) {
+                drawVectorField();
+            }
+            
+            charges.forEach(charge => charge.draw());
+        }
+        
+        function updateUI() {
+            document.getElementById('charge-count').textContent = charges.length;
+            
+            const netCharge = charges.reduce((sum, c) => sum + c.q, 0);
+            document.getElementById('net-charge').textContent = netCharge > 0 ? `+${netCharge}` : netCharge;
+            
+            const listDiv = document.getElementById('chargesList');
+            if (charges.length === 0) {
+                listDiv.innerHTML = '<p style="color: #94a3b8; text-align: center; font-size: 0.8em;">No charges</p>';
+            } else {
+                listDiv.innerHTML = charges.map((charge, i) => `
+                    <div class="charge-item ${charge.q > 0 ? 'positive' : 'negative'}">
+                        <span>
+                            <span class="charge-sign">${charge.q > 0 ? '+' : '−'}</span>
+                            Charge ${i + 1}
+                        </span>
+                        <button class="btn-remove" onclick="removeCharge(${i})">✕</button>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function removeCharge(index) {
+            charges.splice(index, 1);
+            updateUI();
+            draw();
+        }
+        
+        canvas.addEventListener('click', (e) => {
+            if (selectedChargeType !== null) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                charges.push(new Charge(x, y, selectedChargeType));
+                selectedChargeType = null;
+                
+                document.getElementById('addPositive').classList.remove('active');
+                document.getElementById('addNegative').classList.remove('active');
+                
+                updateUI();
+                draw();
+            }
+        });
+        
+        document.getElementById('addPositive').addEventListener('click', () => {
+            selectedChargeType = 1;
+            document.getElementById('addPositive').classList.add('active');
+            document.getElementById('addNegative').classList.remove('active');
+        });
+        
+        document.getElementById('addNegative').addEventListener('click', () => {
+            selectedChargeType = -1;
+            document.getElementById('addNegative').classList.add('active');
+            document.getElementById('addPositive').classList.remove('active');
+        });
+        
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            charges = [];
+            updateUI();
+            draw();
+        });
+        
+        document.getElementById('spacing').addEventListener('input', (e) => {
+            gridSpacing = parseInt(e.target.value);
+            document.getElementById('spacing-value').textContent = gridSpacing;
+            draw();
+        });
+        
+        document.getElementById('scale').addEventListener('input', (e) => {
+            vectorScale = parseInt(e.target.value);
+            document.getElementById('scale-value').textContent = vectorScale;
+            draw();
+        });
+        
+        document.getElementById('magnitude').addEventListener('input', (e) => {
+            chargeMagnitude = parseInt(e.target.value);
+            document.getElementById('magnitude-value').textContent = chargeMagnitude;
+            draw();
+        });
+        
+        document.getElementById('dipoleBtn').addEventListener('click', () => {
+            charges = [
+                new Charge(canvas.width / 2 - 100, canvas.height / 2, 1),
+                new Charge(canvas.width / 2 + 100, canvas.height / 2, -1)
+            ];
+            updateUI();
+            draw();
+        });
+        
+        document.getElementById('quadrupoleBtn').addEventListener('click', () => {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const offset = 80;
+            charges = [
+                new Charge(cx - offset, cy - offset, 1),
+                new Charge(cx + offset, cy - offset, -1),
+                new Charge(cx + offset, cy + offset, 1),
+                new Charge(cx - offset, cy + offset, -1)
+            ];
+            updateUI();
+            draw();
+        });
+        
+        document.getElementById('lineBtn').addEventListener('click', () => {
+            charges = [];
+            const cy = canvas.height / 2;
+            const startX = 200;
+            const spacing = 100;
+            for (let i = 0; i < 5; i++) {
+                charges.push(new Charge(startX + i * spacing, cy, i % 2 === 0 ? 1 : -1));
+            }
+            updateUI();
+            draw();
+        });
+        
+        updateUI();
+        draw();
+    </script>
+</body>
+</html>
